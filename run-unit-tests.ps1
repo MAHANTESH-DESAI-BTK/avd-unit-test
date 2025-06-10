@@ -202,9 +202,30 @@ function Test-HostAvailability {
         } else {
             Write-Output "$hostName is not available. Status: $status"
         }    
-    } catch {
+     } catch {
         Write-Log -Message "Error checking Session Hosts : $_" -FunctionName "Test-HostAvailability"
     }
+}
+
+# Check Session Host exists in AVD
+function Test-HostDrainMode {
+    # Get session hosts in the specified host pool
+    $sessionHosts = Get-AzResource | Where-Object { $_.ResourceType -like "Microsoft.DesktopVirtualization/hostPools/sessionHosts" }
+
+    # Check drain mode status
+    foreach ($Host in $SessionHosts) {
+        try {
+            $DrainModeStatus = $Host.AllowNewSession
+            $HostName = $Host.Name.Split("/")[-1]
+                
+            if ($DrainModeStatus -eq $false) {
+                Write-Host "Drain mode is ON for session host: $HostName"
+            } else {
+                    Write-Host "Drain mode is OFF for session host: $HostName"
+            }
+        } catch {
+            Write-Log -Message "Error checking Session Hosts : $_" -FunctionName "Test-HostDrainMode"
+        }
 }
 
  
